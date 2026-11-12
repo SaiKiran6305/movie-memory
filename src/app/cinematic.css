@@ -200,20 +200,21 @@ input::placeholder { color: #a89a8b; }
 .dashboard-heading { padding: 48px 0 30px; }
 .dashboard-heading h1 { font-size: clamp(36px, 4.2vw, 58px); margin: 16px 0; overflow-wrap: anywhere; }
 .dashboard-heading .muted { font-size: 16px; margin: 0; }
-.account-menu { position: relative; z-index: 20; }
-.account-menu summary { display: flex; align-items: center; gap: 12px; cursor: pointer; list-style: none; padding: 7px 12px 7px 7px; border: 1px solid #ffffff26; border-radius: 40px; background: #24262c; }
-.account-menu summary::-webkit-details-marker { display: none; }
-.account-menu summary:hover { background: #30333a; }
-.account-name { font-size: 13px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.account-chevron { color: #c9c0b6; transition: transform .2s; }
-.account-menu[open] .account-chevron { transform: rotate(180deg); }
-.account-menu .avatar { background: #d6edbd; color: #164749; width: 34px; height: 34px; font-size: 14px; font-weight: 700; }
-.account-popover { position: absolute; right: 0; top: calc(100% + 12px); width: min(300px, calc(100vw - 40px)); background: #24262c; border: 1px solid #55565b; border-radius: 14px; padding: 22px; box-shadow: 0 20px 60px #0008; }
-.account-popover .profile-name { font-size: 15px; }
-.account-popover .profile-email { font-size: 12px; }
-.account-popover form { border-top: 1px solid #ffffff26; margin-top: 18px; padding-top: 8px; }
-.account-popover button { min-height: 44px; width: 100%; justify-content: flex-start; }
-.dashboard-grid { grid-template-columns: minmax(260px, .78fr) minmax(0, 1.5fr); gap: 28px; align-items: stretch; margin-bottom: 52px; }
+.header-account { display: flex; align-items: center; gap: 24px; min-width: 0; }
+.account-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.account-identity .avatar { width: 40px; height: 40px; background: #234d4e; color: #d5eddf; border: 1px solid #65968c; font-weight: 600; }
+.identity-copy { min-width: 0; }
+.identity-copy .profile-name { font-size: 13px; font-weight: 600; color: #f5eee3; }
+.identity-copy .profile-email { font-size: 11px; color: #b8bcb9; margin: 5px 0 0; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.signout-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 16px; border: 1px solid #77726a; border-radius: 9px; color: #eee4d7; background: #ffffff06; font-size: 13px; white-space: nowrap; transition: background .2s, border-color .2s; }
+.signout-button:hover { background: #ffffff12; border-color: #d7b08c; }
+.skip-link { position: absolute; top: -100px; left: 20px; padding: 14px 20px; background: #f5eee3; color: #173e38; z-index: 30; border-radius: 8px; }
+.skip-link:focus { top: 12px; }
+.collection-label { display: flex; justify-content: space-between; gap: 16px; padding: 18px 0; border-top: 1px solid #ffffff22; color: #bbc2ba; font-size: 10px; letter-spacing: .16em; }
+.collection-label span:last-child { letter-spacing: 0; color: #a9b6ae; font-size: 12px; }
+.discovery-hint { display: flex; gap: 12px; align-items: baseline; margin: 0 0 34px; color: #b8c3bb; font-size: 13px; line-height: 1.7; }
+.discovery-hint > span { color: #f2b983; }
+.dashboard-grid { grid-template-columns: minmax(260px, .78fr) minmax(0, 1.5fr); gap: 28px; align-items: stretch; margin-bottom: 24px; }
 .dashboard-grid > * { min-width: 0; }
 .movie-panel { position: relative; padding: 30px; border: 1px solid #427777; border-radius: 20px; background: radial-gradient(ellipse at 70% 20%, #3a7e78, transparent 65%), linear-gradient(145deg, #1a585b, #103a40); box-shadow: 0 18px 60px #0003; }
 .movie-panel::before { display: none; }
@@ -252,6 +253,13 @@ input::placeholder { color: #a89a8b; }
   .fact-card { padding: 28px; }
   .fact-card h2 { font-size: 25px; }
 }
+@media (max-width: 800px) {
+  .dashboard-shell .topbar { flex-wrap: wrap; padding: 20px 0; gap: 20px; }
+  .header-account { width: 100%; justify-content: space-between; gap: 16px; }
+  .account-identity { flex: 1; }
+  .identity-copy { flex: 1; overflow: hidden; }
+  .identity-copy .profile-email { max-width: 100%; }
+}
 @media (max-width: 700px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .movie-panel { display: grid; grid-template-columns: minmax(0, 1fr) 120px; column-gap: 16px; align-items: center; }
@@ -279,8 +287,15 @@ input::placeholder { color: #a89a8b; }
   .onboarding h1 { font-size: 44px; }
   .dashboard-shell .topbar { min-height: 82px; gap: 10px; }
   .dashboard-shell .wordmark { font-size: 23px; }
-  .account-name { display: none; }
-  .account-menu summary { gap: 8px; padding-right: 10px; }
+  .dashboard-shell .topbar { flex-wrap: wrap; padding: 20px 0; gap: 20px; }
+  .header-account { width: 100%; justify-content: space-between; gap: 16px; }
+  .account-identity { flex: 1; }
+  .identity-copy { flex: 1; overflow: hidden; }
+  .identity-copy .profile-email { max-width: 100%; }
+  .identity-copy .profile-name { overflow-wrap: anywhere; }
+  .signout-button { padding: 11px 13px; }
+  .collection-label span:last-child { display: none; }
+  .discovery-hint { font-size: 12px; margin-bottom: 26px; }
   .dashboard-heading { padding: 34px 0 26px; }
   .dashboard-heading h1 { font-size: 38px; letter-spacing: -.04em; }
   .dashboard-heading .muted { font-size: 14px; }
@@ -291,5 +306,5 @@ input::placeholder { color: #a89a8b; }
   .fact-card .button-secondary { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .account-chevron { transition: none; }
+  .signout-button { transition: none; }
 }
