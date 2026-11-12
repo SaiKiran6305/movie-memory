@@ -128,7 +128,7 @@ Preview deployments require their own database and matching OAuth origin/callbac
 
 The modular monolith keeps the exercise reviewable. Database caching adds a read on every request but works across restarts and instances. Polling adds short-lived database traffic; it is acceptable at this scope but should not become high-volume background orchestration. JWT sessions simplify setup but do not provide immediate global revocation. User/movie cache isolation favors simple ownership reasoning over cross-user token savings.
 
-With two more hours, priorities would be per-user abuse controls and cost budgets, stronger deployment observability, more browser accessibility checks, and testing the production OAuth setup with a reviewer account. Larger follow-ups include support for multiple favorite movies, bounded fact retention, canonical movie identification, source-backed trivia, and a background worker if measured traffic and reliability needs justify it. Redis is only worth adding if measured database/cache load justifies another service.
+With two more hours, priorities would be per-user abuse controls and cost budgets, stronger deployment observability, more browser accessibility checks, and additional live OAuth checks with a separate reviewer account. Larger follow-ups include support for multiple favorite movies, bounded fact retention, canonical movie identification, source-backed trivia, and a background worker if measured traffic and reliability needs justify it. Redis is only worth adding if measured database/cache load justifies another service.
 
 ## AI usage
 
@@ -136,4 +136,3 @@ With two more hours, priorities would be per-user abuse controls and cost budget
 - I used an AI coding assistant during implementation to help draft code, propose test cases, and troubleshoot build and deployment issues.
 - I reviewed the design decisions and pull requests myself, checked the proposed behavior against the assessment, and verified changes with automated checks and the deployed app. The tests use mocked Google/OpenAI responses where noted; they do not prove every live external-service behavior.
 
-A 3–5 minute walkthrough video is optional in the assessment and is not included in this repository.
