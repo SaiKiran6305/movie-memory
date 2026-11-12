@@ -130,6 +130,9 @@ test("dashboard renders before the fact and recovers from errors", async ({
   await expect(
     page.getByRole("heading", { name: /Welcome back/ }),
   ).toBeVisible();
+  const account = page.getByRole("banner").getByLabel("Your account");
+  await expect(account.getByText("Sai Kiran", { exact: true })).toBeVisible();
+  await expect(account.getByRole("button", { name: /Sign out/ })).toBeVisible();
   await expect(page.getByText("Looking beyond the final cut…")).toBeVisible();
   await expect(
     page.getByText("A saved test fact about the film."),
@@ -139,7 +142,7 @@ test("dashboard renders before the fact and recovers from errors", async ({
     fullPage: true,
   });
   responseMode = "error";
-  await page.getByRole("button", { name: /Refresh fact/ }).click();
+  await page.getByRole("button", { name: /Refresh fact|Another detail/ }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Please try again." })).toHaveText("Please try again.");
   responseMode = "fallback";
   await page.getByRole("button", { name: /Try again/ }).click();
