@@ -156,6 +156,8 @@ test("dashboard renders before the fact and recovers from errors", async ({
     path: "test-results/dashboard-mobile.png",
     fullPage: true,
   });
+  await page.getByLabel("Account: Sai Kiran").click();
+  await expect(page.getByRole("button", { name: /Sign out/ })).toBeVisible();
   await page.getByRole("button", { name: /Sign out/ }).click();
   await expect(page).toHaveURL("http://localhost:3000/");
   await page.goto("/dashboard");
