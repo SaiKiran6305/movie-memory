@@ -128,7 +128,7 @@ Preview deployments require their own database and matching OAuth origin/callbac
 
 The modular monolith keeps the exercise reviewable. Database caching adds a read on every request but works across restarts and instances. Polling adds short-lived database traffic; it is acceptable at this scope but should not become high-volume background orchestration. JWT sessions simplify setup but do not provide immediate global revocation. User/movie cache isolation favors simple ownership reasoning over cross-user token savings.
 
-With two more hours, priorities would be per-user abuse controls and cost budgets, stronger deployment observability, more browser accessibility checks, and additional live OAuth checks with a separate reviewer account. Larger follow-ups include support for multiple favorite movies, bounded fact retention, canonical movie identification, source-backed trivia, and a background worker if measured traffic and reliability needs justify it. Redis is only worth adding if measured database/cache load justifies another service.
+With two more hours, I would add support for multiple favorite movies: a small movie list, a way to select the active movie, and tests that keep fact history and the 60-second cache isolated per user and movie. I would also add per-user cost controls and more accessibility checks. Longer-term improvements include bounded fact retention, canonical movie identification, source-backed trivia, stronger observability, and a background worker if measured traffic and reliability needs justify it. Redis is only worth adding if measured database/cache load justifies another service.
 
 ## AI usage
 
