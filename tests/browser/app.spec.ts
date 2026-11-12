@@ -138,6 +138,9 @@ test("dashboard renders before the fact and recovers from errors", async ({
     path: "test-results/dashboard-desktop.png",
     fullPage: true,
   });
+  const header = page.getByRole("banner");
+  await expect(header.getByLabel("Your profile")).toContainText("Sai Kiran");
+  await expect(header.getByRole("button", { name: "Sign out" })).toBeVisible();
   responseMode = "error";
   await page.getByRole("button", { name: /Refresh fact/ }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Please try again." })).toHaveText("Please try again.");
@@ -156,7 +159,6 @@ test("dashboard renders before the fact and recovers from errors", async ({
     path: "test-results/dashboard-mobile.png",
     fullPage: true,
   });
-  await page.getByLabel("Account: Sai Kiran").click();
   await expect(page.getByRole("button", { name: /Sign out/ })).toBeVisible();
   await page.getByRole("button", { name: /Sign out/ }).click();
   await expect(page).toHaveURL("http://localhost:3000/");

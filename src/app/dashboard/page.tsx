@@ -13,31 +13,38 @@ export default async function Dashboard() {
   if (!user.favoriteMovie) redirect("/onboarding");
   const name = user.name?.trim() || "Movie lover";
   return (
-    <main className="shell dashboard-shell">
+    <div className="shell dashboard-shell">
+      <a className="skip-link" href="#dashboard-content">Skip to your movie</a>
       <header className="topbar">
         <Link className="wordmark" href="/">
           ◈ Movie Memory
         </Link>
-        <details className="account-menu">
-          <summary aria-label={`Account: ${name}`}>
+        <div className="header-account">
+          <div className="account-identity" aria-label="Your profile">
             <span className="avatar">
-              {user.image ? <Image width={38} height={38} unoptimized src={user.image} alt="" referrerPolicy="no-referrer" /> : name.charAt(0).toUpperCase()}
+              {user.image ? (
+                <Image width={40} height={40} unoptimized src={user.image} alt="" referrerPolicy="no-referrer" />
+              ) : name.charAt(0).toUpperCase()}
             </span>
-            <span className="account-name">{name}</span>
-            <span className="account-chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="account-popover">
-            <p className="profile-name">{name}</p>
-            <p className="helper profile-email">{user.email || "Signed in with Google"}</p>
-            <form action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/" });
-            }}>
-              <button className="button-quiet">Sign out ↗</button>
-            </form>
+            <div className="identity-copy">
+              <p className="profile-name">{name}</p>
+              <p className="profile-email">{user.email || "Signed in with Google"}</p>
+            </div>
           </div>
-        </details>
+          <form action={async () => {
+            "use server";
+            await signOut({ redirectTo: "/" });
+          }}>
+            <button className="signout-button">
+              Sign out
+              <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13" />
+              </svg>
+            </button>
+          </form>
+        </div>
       </header>
+      <main id="dashboard-content" tabIndex={-1}>
       <section className="dashboard-heading">
         <span className="eyebrow">YOUR SCREENING ROOM</span>
         <h1>
@@ -45,6 +52,7 @@ export default async function Dashboard() {
         </h1>
         <p className="muted">A place to revisit the film that stays with you.</p>
       </section>
+      <div className="collection-label"><span>YOUR COLLECTION</span><span>One favorite. More to discover.</span></div>
       <div className="dashboard-grid">
         <aside className="movie-panel panel">
           <div className="movie-card-top"><span className="eyebrow">YOUR FAVORITE FILM</span><span aria-hidden="true">✦</span></div>
@@ -73,12 +81,14 @@ export default async function Dashboard() {
         </aside>
         <FactCard />
       </div>
+      <p className="discovery-hint"><span aria-hidden="true">✦</span> A new detail, at your pace. Facts stay saved for a minute before a new discovery is available.</p>
+      </main>
       <footer className="footer">
         <span>Good stories are worth another look.</span>
         <span>
           MOVIE MEMORY <span aria-hidden="true">✦</span>
         </span>
       </footer>
-    </main>
+    </div>
   );
 }
