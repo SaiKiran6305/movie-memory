@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String           @id @default(cuid())
+  name          String?
+  email         String?          @unique
+  emailVerified DateTime?
+  image         String?
+  favoriteMovie String?          @db.VarChar(200)
+  accounts      Account[]
+  facts         MovieFact[]
+  generations   FactGeneration[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model MovieFact {
+  id         String   @id @default(cuid())
+  userId     String
+  movieKey   String   @db.VarChar(200)
+  movieTitle String   @db.VarChar(200)
+  text       String
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, movieKey, createdAt(sort: Desc)])
+}
+
+model FactGeneration {
+  userId         String
+  movieKey       String   @db.VarChar(200)
+  token          String
+  leaseExpiresAt DateTime @db.Timestamptz(3)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, movieKey])
+}
