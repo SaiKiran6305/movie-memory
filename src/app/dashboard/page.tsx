@@ -28,20 +28,20 @@ export default async function Dashboard() {
         </form>
       </header>
       <section className="dashboard-heading">
-        <span className="eyebrow">YOUR PERSONAL SCREENING ROOM</span>
+        <span className="eyebrow">YOUR SCREENING ROOM</span>
         <h1>
           Welcome back, <em>{name.split(" ")[0]}.</em>
         </h1>
-        <p className="muted">Same favorite film. Something new to discover.</p>
+        <p className="muted">A place to revisit the film that stays with you.</p>
       </section>
       <div className="dashboard-grid">
         <aside className="movie-panel panel">
           <div className="mini-orbit" aria-hidden="true">
             ◈
           </div>
-          <span className="eyebrow">YOUR FAVORITE FILM</span>
+          <span className="eyebrow">NOW SHOWING</span>
           <h2>{user.favoriteMovie}</h2>
-          <span className="movie-tag">A personal classic</span>
+          <span className="movie-tag">Your chosen film</span>
           <div className="profile">
             <div className="avatar">
               {user.image ? (
@@ -68,7 +68,7 @@ export default async function Dashboard() {
         <FactCard />
       </div>
       <footer className="footer">
-        <span>Your favorite movie is always worth another look.</span>
+        <span>Good stories are worth another look.</span>
         <span>
           MOVIE MEMORY <span aria-hidden="true">✦</span>
         </span>
