@@ -253,6 +253,13 @@ input::placeholder { color: #a89a8b; }
   .fact-card { padding: 28px; }
   .fact-card h2 { font-size: 25px; }
 }
+@media (max-width: 800px) {
+  .dashboard-shell .topbar { flex-wrap: wrap; padding: 20px 0; gap: 20px; }
+  .header-account { width: 100%; justify-content: space-between; gap: 16px; }
+  .account-identity { flex: 1; }
+  .identity-copy { flex: 1; overflow: hidden; }
+  .identity-copy .profile-email { max-width: 100%; }
+}
 @media (max-width: 700px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .movie-panel { display: grid; grid-template-columns: minmax(0, 1fr) 120px; column-gap: 16px; align-items: center; }
