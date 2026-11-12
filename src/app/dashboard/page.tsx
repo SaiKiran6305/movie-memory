@@ -13,65 +13,64 @@ export default async function Dashboard() {
   if (!user.favoriteMovie) redirect("/onboarding");
   const name = user.name?.trim() || "Movie lover";
   return (
-    <main className="shell">
-      <header className="topbar">
-        <Link className="wordmark" href="/">
-          ◈ Movie Memory
-        </Link>
-        <form
-          action={async () => {
+    <main className="shell screening-room">
+      <header className="topbar room-navigation">
+        <Link className="wordmark" href="/"><span className="brand-symbol" aria-hidden="true">◈</span> Movie Memory</Link>
+        <div className="account-bar" aria-label="Your account">
+          <div className="avatar">
+            {user.image ? (
+              <Image width={42} height={42} unoptimized src={user.image} alt="" referrerPolicy="no-referrer" />
+            ) : name.charAt(0).toUpperCase()}
+          </div>
+          <div className="account-copy">
+            <p className="profile-name">{name}</p>
+            <p className="profile-email">{user.email || "Signed in with Google"}</p>
+          </div>
+          <form action={async () => {
             "use server";
             await signOut({ redirectTo: "/" });
-          }}
-        >
-          <button className="button-quiet">Sign out ↗</button>
-        </form>
+          }}>
+            <button className="account-signout">Sign out <span aria-hidden="true">↗</span></button>
+          </form>
+        </div>
       </header>
-      <section className="dashboard-heading">
-        <span className="eyebrow">YOUR SCREENING ROOM</span>
-        <h1>
-          Welcome back, <em>{name.split(" ")[0]}.</em>
-        </h1>
-        <p className="muted">A place to revisit the film that stays with you.</p>
+
+      <section className="dashboard-heading room-heading">
+        <div>
+          <span className="eyebrow">YOUR PERSONAL SCREENING ROOM</span>
+          <h1>Welcome back, <em>{name.split(" ")[0]}.</em></h1>
+          <p className="muted">You know the film. Let’s find the details you missed.</p>
+        </div>
+        <div className="room-stamp" aria-hidden="true"><span>MM</span><small>ADMIT ONE<br />STAY CURIOUS</small></div>
       </section>
-      <div className="dashboard-grid">
+
+      <div className="section-divider"><span>IN THE SPOTLIGHT</span><span>YOUR FILM · ITS STORIES</span></div>
+      <div className="dashboard-grid room-grid">
         <aside className="movie-panel panel">
-          <div className="mini-orbit" aria-hidden="true">
-            ◈
+          <div className="poster-art" aria-hidden="true">
+            <span className="poster-index">MM / 001</span>
+            <div className="poster-sun" />
+            <div className="poster-horizon horizon-back" />
+            <div className="poster-horizon horizon-front" />
+            <span className="poster-caption">SOME STORIES<br /><i>stay with us.</i></span>
+            <span className="poster-bottom">A PERSONAL CLASSIC</span>
           </div>
-          <span className="eyebrow">NOW SHOWING</span>
-          <h2>{user.favoriteMovie}</h2>
-          <span className="movie-tag">Your chosen film</span>
-          <div className="profile">
-            <div className="avatar">
-              {user.image ? (
-                <Image
-                  width={38}
-                  height={38}
-                  unoptimized
-                  src={user.image}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                name.charAt(0).toUpperCase()
-              )}
-            </div>
-            <div>
-              <p className="profile-name">{name}</p>
-              <p className="helper profile-email">
-                {user.email || "Signed in with Google"}
-              </p>
-            </div>
+          <div className="movie-info">
+            <span className="eyebrow"><span className="small-dot" /> YOUR FAVORITE FILM</span>
+            <h2>{user.favoriteMovie}</h2>
+            <p>Your pick. Always worth another look.</p>
           </div>
         </aside>
         <FactCard />
       </div>
+      <section className="room-notes" aria-label="About your screening room">
+        <div><span className="note-number">01</span><div><h2>A little closer to the film</h2><p>Discover a detail from the world behind your favorite movie.</p></div></div>
+        <div><span className="note-number">02</span><div><h2>Take a moment. Come back.</h2><p>Your fact stays saved. Refresh after a minute for a new discovery.</p></div></div>
+        <div><span className="note-number">03</span><div><h2>Made for your curiosity</h2><p>Your movie and discoveries belong to your account.</p></div></div>
+      </section>
       <footer className="footer">
-        <span>Good stories are worth another look.</span>
-        <span>
-          MOVIE MEMORY <span aria-hidden="true">✦</span>
-        </span>
+        <span>For the films that never leave us.</span>
+        <span>MOVIE MEMORY <span aria-hidden="true">✦</span></span>
       </footer>
     </main>
   );
