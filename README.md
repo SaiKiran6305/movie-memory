@@ -4,7 +4,11 @@ A small movie companion: sign in with Google, save your favorite film, and disco
 
 **Variant A — backend caching and correctness.** The implementation emphasizes user isolation, a precise 60-second cache, coordinated generation, and useful recovery when the provider fails. The full frontend includes onboarding, a responsive dashboard, independent fact loading, and clear recovery states.
 
-## Run locally
+## Live app
+
+Production: [movie-memory-gilt.vercel.app](https://movie-memory-gilt.vercel.app/). The deployed app uses Vercel, Neon, and the production Google OAuth callback. The instructions below are for running a separate copy on your own computer.
+
+## Run locally (optional)
 
 Requirements: Node.js 22.12+ and PostgreSQL (Docker Compose is provided).
 
@@ -17,9 +21,9 @@ npm run db:migrate
 npm run dev
 ```
 
-Open http://localhost:3000. Generate your own session secret with `openssl rand -base64 32`. Never commit `.env` or put secrets in `NEXT_PUBLIC_` variables. Prisma CLI loads `.env`; Next.js also supports `.env.local`, but its values are not automatically available to Prisma CLI.
+Open http://localhost:3000 only when running the app locally with `npm run dev`. For the deployed app, use the production link above. Generate your own session secret with `openssl rand -base64 32`. Never commit `.env` or put secrets in `NEXT_PUBLIC_` variables. Prisma CLI loads `.env`; Next.js also supports `.env.local`, but its values are not automatically available to Prisma CLI.
 
-Create a Google OAuth **Web application** client with `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI. Configure the consent screen and add your account as a test user while the OAuth application is in testing. Use the equivalent HTTPS callback for production. Google login needs real credentials; there is no production authentication bypass.
+Create a Google OAuth **Web application** client with `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI. Configure the Google Auth Platform consent screen. This app requests only basic identity scopes (openid, email, and profile), for which Google's Testing mode permits sign-in without a test-user allowlist. Add test users if additional scopes later require them. The production OAuth callback is `https://movie-memory-gilt.vercel.app/api/auth/callback/google`. Google login needs real credentials; there is no production authentication bypass.
 
 ### Environment variables
 
@@ -118,7 +122,7 @@ Browser tests create signed test sessions using the test secret and intercept fa
 1. Create a Neon Postgres project and choose a region near the Vercel functions.
 2. Import this GitHub repository into Vercel using the Next.js preset and Node.js 22. Use `npm ci` and `npm run build`.
 3. Configure the environment variables above in Vercel. Mark secrets sensitive. Set `AUTH_URL` to the stable application HTTPS URL. Never use `NEXT_PUBLIC_` for secrets.
-4. Register `https://YOUR_APP_HOST/api/auth/callback/google` with the Google OAuth client. While Google consent is in testing, reviewers must be added as test users. Review the publishing requirements before allowing arbitrary Google accounts.
+4. Register `https://YOUR_APP_HOST/api/auth/callback/google` with the Google OAuth client. For this app's basic identity scopes, Google's Testing mode does not restrict sign-in to listed test users. Review the Google Auth Platform publishing status and scopes before requesting broader Google data.
 5. Run `npm run db:migrate` against the deployment's direct database URL in a controlled release step before deploying. Migrations are not silently run on every preview build.
 6. Deploy and verify sign-in, onboarding, cached and fresh facts, logout, and API isolation. Redeploy after changing Vercel environment variables.
 
@@ -128,14 +132,11 @@ Preview deployments require their own database and matching OAuth origin/callbac
 
 The modular monolith keeps the exercise reviewable. Database caching adds a read on every request but works across restarts and instances. Polling adds short-lived database traffic; it is acceptable at this scope but should not become high-volume background orchestration. JWT sessions simplify setup but do not provide immediate global revocation. User/movie cache isolation favors simple ownership reasoning over cross-user token savings.
 
-With two more hours, priorities would be per-user abuse controls and cost budgets, stronger deployment observability, more browser accessibility checks, and testing the production OAuth setup with a reviewer account. Larger follow-ups include bounded fact retention, canonical movie identification, source-backed trivia, and an SQS worker flow aligned with Scowtt's stack. Redis is only worth adding if measured database/cache load justifies another service.
+With two more hours, I would add support for multiple favorite movies: a small movie list, a way to select the active movie, and tests that keep fact history and the 60-second cache isolated per user and movie. I would also add per-user cost controls and more accessibility checks. Longer-term improvements include bounded fact retention, canonical movie identification, source-backed trivia, stronger observability, and a background worker if measured traffic and reliability needs justify it. Redis is only worth adding if measured database/cache load justifies another service.
 
 ## AI usage
 
-- Used an AI coding assistant to discuss architecture, draft implementation and tests, and investigate build issues.
-- Used official framework and provider documentation to check integration details.
-- Validation results and unverified external integrations are reported explicitly; generated code is not itself evidence of correctness.
+- I planned the architecture and deployment approach, chose Variant A, and decided the scope and tradeoffs for this take-home.
+- I used an AI coding assistant during implementation to help draft code, propose test cases, and troubleshoot build and deployment issues.
+- I reviewed the design decisions and pull requests myself, checked the proposed behavior against the assessment, and verified changes with automated checks and the deployed app. The tests use mocked Google/OpenAI responses where noted; they do not prove every live external-service behavior.
 
-## Walkthrough outline
-
-Show Google login and onboarding, dashboard loading and refresh, then explain the lease claim/save transaction and demonstrate the concurrent integration test. Finish with fallback behavior, user isolation, and the rejected long-lived advisory-lock alternative. Aim for 3–5 minutes.

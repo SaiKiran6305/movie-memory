@@ -52,7 +52,7 @@ test("landing is responsive and protected routes redirect", async ({
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(
-    page.getByRole("heading", { name: /Some movies/ }),
+    page.getByRole("heading", { name: /The credits roll/ }),
   ).toBeVisible();
   expect(
     await page.evaluate(
@@ -130,7 +130,7 @@ test("dashboard renders before the fact and recovers from errors", async ({
   await expect(
     page.getByRole("heading", { name: /Welcome back/ }),
   ).toBeVisible();
-  await expect(page.getByText("Finding a story worth sharing…")).toBeVisible();
+  await expect(page.getByText("Looking beyond the final cut…")).toBeVisible();
   await expect(
     page.getByText("A saved test fact about the film."),
   ).toBeVisible();

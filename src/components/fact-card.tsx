@@ -159,7 +159,7 @@ export function FactCard() {
           onClick={() => void load()}
           disabled={loading}
         >
-          {loading ? "Discovering…" : error ? "Try again ↻" : "Another detail ↻"}
+          {loading ? "Discovering…" : error ? "Try again ↻" : "Refresh fact ↻"}
         </button>
       </div>
       <p className="disclaimer">
