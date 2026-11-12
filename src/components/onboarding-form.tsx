@@ -11,7 +11,7 @@ export function OnboardingForm() {
     try {
       const response = await fetch("/api/me/movie", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ movie }), signal: AbortSignal.timeout(10000) });
       const data = await response.json();
-      if (response.status === 401) { window.location.assign("/"); return; }
+      if (response.status === 401) { router.replace("/"); return; }
       if (response.status === 409 || response.ok) { router.replace("/dashboard"); router.refresh(); return; }
       setError(data.error?.message ?? "Your movie could not be saved.");
     } catch { setError("We couldn't save your movie. Check your connection and try again."); }
