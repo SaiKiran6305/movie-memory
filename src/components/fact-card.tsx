@@ -99,23 +99,23 @@ export function FactCard() {
       aria-busy={loading}
     >
       <div className="card-top">
-        <span className="eyebrow">BEHIND THE SCENES</span>
+        <span className="eyebrow">THE NEXT REEL</span>
         <span className="sparkle" aria-hidden="true">
           ✦
         </span>
       </div>
-      <h2 id="fact-title">A little movie magic.</h2>
+      <h2 id="fact-title">The story behind the story.</h2>
       <div className="fact-content" aria-live="polite">
         {!fact && loading ? (
           <div className="loading-copy">
             <div className="skeleton" />
             <div className="skeleton short" />
-            <p className="muted">Finding a story worth sharing…</p>
+            <p className="muted">Looking beyond the final cut…</p>
           </div>
         ) : fact ? (
           <blockquote>{fact.fact}</blockquote>
         ) : (
-          <p className="muted">Your next discovery is a click away.</p>
+          <p className="muted">There’s more to this film than meets the eye.</p>
         )}
       </div>
       {fact?.status === "stale-fallback" && (
@@ -159,7 +159,7 @@ export function FactCard() {
           onClick={() => void load()}
           disabled={loading}
         >
-          {loading ? "Discovering…" : error ? "Try again ↻" : "Refresh fact ↻"}
+          {loading ? "Discovering…" : error ? "Try again ↻" : "Another detail ↻"}
         </button>
       </div>
       <p className="disclaimer">

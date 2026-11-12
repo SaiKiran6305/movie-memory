@@ -26,14 +26,14 @@ export default async function Onboarding() {
         </form>
       </header>
       <section className="onboarding panel">
-        <span className="eyebrow">YOUR FIRST SCENE</span>
+        <span className="eyebrow">THE OPENING SCENE</span>
         <h1>
-          Every movie lover
+          Start with the film
           <br />
-          has that <em>one film.</em>
+          you <em>always return to.</em>
         </h1>
         <p className="muted intro">
-          The one you could watch a hundred times. What’s yours?
+          The one you quote, defend, or watch again just for a single scene. Tell us its name.
         </p>
         <OnboardingForm />
       </section>
