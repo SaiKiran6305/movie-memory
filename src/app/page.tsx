@@ -23,23 +23,23 @@ export default async function Home({
         <Link className="wordmark" href="/">
           ◈ Movie Memory
         </Link>
-        <span className="header-note">FOR THE LOVE OF FILM</span>
+        <span className="header-note">A PERSONAL FILM JOURNAL</span>
       </header>
       <section className="hero">
         <div className="hero-copy">
           <span className="eyebrow">
-            <span className="small-dot" /> A NEW WAY TO REVISIT YOUR FAVORITE
+            <span className="small-dot" /> THE FILMS WE CARRY WITH US
           </span>
           <h1>
-            Some movies
+            The credits roll.
             <br />
-            stay with you.
+            The feeling stays.
             <br />
-            <em>Keep the magic.</em>
+            <em>Keep the story.</em>
           </h1>
           <p className="intro muted">
-            Your favorite film has more stories to tell. Save the one you love
-            and discover a little something you didn’t know.
+            A film can live in your head for years. Give your favorite a place to stay,
+            and uncover the little details that make it unforgettable.
           </p>
           <form
             action={async () => {
@@ -60,11 +60,11 @@ export default async function Home({
             </p>
           )}
           <p className="helper">
-            Your movie. Your account. A moment of discovery.
+            One favorite film. An endless conversation.
           </p>
           <div className="hero-details">
-            <span>01 &nbsp; Pick your film</span>
-            <span>02 &nbsp; Discover its story</span>
+            <span>01 &nbsp; Choose your film</span>
+            <span>02 &nbsp; Go behind the scenes</span>
           </div>
         </div>
         <div
@@ -76,9 +76,9 @@ export default async function Home({
           <div className="orbit orbit-two" />
           <div className="orb" />
           <div className="art-caption">
-            EVERY GREAT FILM
+            EVERY GREAT STORY
             <br />
-            LEAVES AN IMPRESSION.
+            DESERVES AN ENCORE.
           </div>
           <div className="ticket">
             <div className="ticket-top">
@@ -86,12 +86,12 @@ export default async function Home({
               <span>ADMIT ONE</span>
             </div>
             <div className="ticket-title">
-              Your next
+              One film.
               <br />
-              <i>“I never knew that.”</i>
+              <i>A thousand details.</i>
             </div>
             <div className="ticket-bottom">
-              <span>ONE FAVORITE. MORE TO DISCOVER.</span>
+              <span>A STORY WORTH REVISITING.</span>
               <div className="barcode" />
             </div>
           </div>
@@ -99,7 +99,7 @@ export default async function Home({
         </div>
       </section>
       <footer className="footer">
-        <span>A little more movie magic.</span>
+        <span>For the films that never leave us.</span>
         <span>
           Made for curious movie lovers <span aria-hidden="true">✦</span>
         </span>
