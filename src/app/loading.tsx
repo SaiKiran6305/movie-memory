@@ -1,1 +1,13 @@
-export default function Loading() { return <main className="shell" aria-busy="true"><div className="topbar wordmark">◈ Movie Memory</div><section className="onboarding panel" role="status"><span className="eyebrow">SETTING THE SCENE</span><div className="skeleton" /><div className="skeleton short" /><p className="muted">Loading your screening room…</p></section></main>; }
+export default function Loading() {
+  return (
+    <main className="shell" aria-busy="true">
+      <div className="topbar wordmark">◈ Movie Memory</div>
+      <section className="onboarding panel" role="status">
+        <span className="eyebrow">SETTING THE SCENE</span>
+        <div className="skeleton" />
+        <div className="skeleton short" />
+        <p className="muted">Loading your screening room…</p>
+      </section>
+    </main>
+  );
+}

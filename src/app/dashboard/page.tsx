@@ -12,9 +12,67 @@ export default async function Dashboard() {
   if (!user) redirect("/api/auth/signout");
   if (!user.favoriteMovie) redirect("/onboarding");
   const name = user.name?.trim() || "Movie lover";
-  return <main className="shell"><header className="topbar"><Link className="wordmark" href="/">◈ Movie Memory</Link><form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}><button className="button-quiet">Sign out ↗</button></form></header>
-    <section className="dashboard-heading"><span className="eyebrow">YOUR PERSONAL SCREENING ROOM</span><h1>Welcome back, <em>{name.split(" ")[0]}.</em></h1><p className="muted">Same favorite film. Something new to discover.</p></section>
-    <div className="dashboard-grid"><aside className="movie-panel panel"><div className="mini-orbit" aria-hidden="true">◈</div><span className="eyebrow">YOUR FAVORITE FILM</span><h2>{user.favoriteMovie}</h2><span className="movie-tag">A personal classic</span><div className="profile"><div className="avatar">{user.image ? <Image width={38} height={38} unoptimized src={user.image} alt="" referrerPolicy="no-referrer" /> : name.charAt(0).toUpperCase()}</div><div><p className="profile-name">{name}</p><p className="helper profile-email">{user.email || "Signed in with Google"}</p></div></div></aside><FactCard /></div>
-    <footer className="footer"><span>Your favorite movie is always worth another look.</span><span>MOVIE MEMORY <span aria-hidden="true">✦</span></span></footer>
-  </main>;
+  return (
+    <main className="shell">
+      <header className="topbar">
+        <Link className="wordmark" href="/">
+          ◈ Movie Memory
+        </Link>
+        <form
+          action={async () => {
+            "use server";
+            await signOut({ redirectTo: "/" });
+          }}
+        >
+          <button className="button-quiet">Sign out ↗</button>
+        </form>
+      </header>
+      <section className="dashboard-heading">
+        <span className="eyebrow">YOUR PERSONAL SCREENING ROOM</span>
+        <h1>
+          Welcome back, <em>{name.split(" ")[0]}.</em>
+        </h1>
+        <p className="muted">Same favorite film. Something new to discover.</p>
+      </section>
+      <div className="dashboard-grid">
+        <aside className="movie-panel panel">
+          <div className="mini-orbit" aria-hidden="true">
+            ◈
+          </div>
+          <span className="eyebrow">YOUR FAVORITE FILM</span>
+          <h2>{user.favoriteMovie}</h2>
+          <span className="movie-tag">A personal classic</span>
+          <div className="profile">
+            <div className="avatar">
+              {user.image ? (
+                <Image
+                  width={38}
+                  height={38}
+                  unoptimized
+                  src={user.image}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                name.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div>
+              <p className="profile-name">{name}</p>
+              <p className="helper profile-email">
+                {user.email || "Signed in with Google"}
+              </p>
+            </div>
+          </div>
+        </aside>
+        <FactCard />
+      </div>
+      <footer className="footer">
+        <span>Your favorite movie is always worth another look.</span>
+        <span>
+          MOVIE MEMORY <span aria-hidden="true">✦</span>
+        </span>
+      </footer>
+    </main>
+  );
 }
