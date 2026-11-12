@@ -4,7 +4,11 @@ A small movie companion: sign in with Google, save your favorite film, and disco
 
 **Variant A — backend caching and correctness.** The implementation emphasizes user isolation, a precise 60-second cache, coordinated generation, and useful recovery when the provider fails. The full frontend includes onboarding, a responsive dashboard, independent fact loading, and clear recovery states.
 
-## Run locally
+## Live app
+
+Production: [movie-memory-gilt.vercel.app](https://movie-memory-gilt.vercel.app/). The deployed app uses Vercel, Neon, and the production Google OAuth callback. The instructions below are for running a separate copy on your own computer.
+
+## Run locally (optional)
 
 Requirements: Node.js 22.12+ and PostgreSQL (Docker Compose is provided).
 
@@ -17,9 +21,9 @@ npm run db:migrate
 npm run dev
 ```
 
-Open http://localhost:3000. Generate your own session secret with `openssl rand -base64 32`. Never commit `.env` or put secrets in `NEXT_PUBLIC_` variables. Prisma CLI loads `.env`; Next.js also supports `.env.local`, but its values are not automatically available to Prisma CLI.
+Open http://localhost:3000 only when running the app locally with `npm run dev`. For the deployed app, use the production link above. Generate your own session secret with `openssl rand -base64 32`. Never commit `.env` or put secrets in `NEXT_PUBLIC_` variables. Prisma CLI loads `.env`; Next.js also supports `.env.local`, but its values are not automatically available to Prisma CLI.
 
-Create a Google OAuth **Web application** client with `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI. Configure the Google Auth Platform consent screen. This app requests only basic identity scopes (openid, email, and profile), for which Google's Testing mode permits sign-in without a test-user allowlist. Add test users if additional scopes later require them. Use the equivalent HTTPS callback for production. Google login needs real credentials; there is no production authentication bypass.
+Create a Google OAuth **Web application** client with `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI. Configure the Google Auth Platform consent screen. This app requests only basic identity scopes (openid, email, and profile), for which Google's Testing mode permits sign-in without a test-user allowlist. Add test users if additional scopes later require them. The production OAuth callback is `https://movie-memory-gilt.vercel.app/api/auth/callback/google`. Google login needs real credentials; there is no production authentication bypass.
 
 ### Environment variables
 
