@@ -140,7 +140,7 @@ test("dashboard renders before the fact and recovers from errors", async ({
   });
   responseMode = "error";
   await page.getByRole("button", { name: /Refresh fact/ }).click();
-  await expect(page.getByRole("alert")).toHaveText("Please try again.");
+  await expect(page.getByRole("alert").filter({ hasText: "Please try again." })).toHaveText("Please try again.");
   responseMode = "fallback";
   await page.getByRole("button", { name: /Try again/ }).click();
   await expect(
