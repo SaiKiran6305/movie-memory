@@ -53,6 +53,32 @@ For Prisma 6, use bounded connection settings on the application URL, e.g. `conn
 
 ## Architecture
 
+```mermaid
+flowchart TD
+    Browser["Browser: React dashboard"]
+    Google["Google OAuth"]
+    subgraph App["Vercel: Next.js application"]
+        Auth["Auth.js: JWT sessions"]
+        Pages["Server pages and API routes"]
+        Facts["Fact service"]
+        Store["Prisma and parameterized SQL"]
+    end
+    DB[("Neon PostgreSQL: users, facts, leases")]
+    OpenAI["OpenAI Responses API"]
+    Browser -->|"Sign in"| Auth
+    Auth <-->|"Identity verification"| Google
+    Browser <-->|"Pages and typed responses"| Pages
+    Pages -->|"Verify session"| Auth
+    Pages -->|"Verified user ID"| Facts
+    Auth -->|"Persist account"| Store
+    Pages -->|"Profile and onboarding"| Store
+    Facts -->|"Cache and lease operations"| Store
+    Store <--> DB
+    Facts <-->|"Movie title and recent facts"| OpenAI
+```
+
+The browser never receives provider or database credentials. PostgreSQL coordinates requests across application instances; the OpenAI call runs outside a database transaction.
+
 The application is a modular monolith. Pages and API handlers run in Next.js; external services are Google identity, OpenAI, and Postgres. There is no separate API deployment, queue, or in-memory correctness dependency.
 
 - **Presentation:** server-rendered profile and movie information, with a client fact card that loads independently. No OpenAI call blocks the initial dashboard render. Forms and fact requests expose loading, retry, and error states; screen readers receive meaningful status updates.
@@ -72,6 +98,25 @@ The application is a modular monolith. Pages and API handlers run in Next.js; ex
 Movie keys trim leading/trailing whitespace, collapse internal whitespace, and lowercase. This equates `Interstellar ` and `interstellar`. It does not identify remakes, correct spelling, or provide canonical movie IDs. Users can include a year.
 
 ### Cache and concurrency
+
+```mermaid
+flowchart TD
+    Request["Authenticated fact request"] --> Cache{"Fact younger than 60s?"}
+    Cache -->|Yes| Cached["Return cached fact"]
+    Cache -->|No| Claim{"Claim 30s lease"}
+    Claim -->|Held by another request| Poll["Poll for up to 3s"]
+    Poll --> Follower["Return fresh cache, stale fallback, or 202"]
+    Claim -->|Acquired| Recheck{"Cache fresh after claim?"}
+    Recheck -->|Yes| Cached
+    Recheck -->|No| Generate["Generate with recent history: 8s timeout"]
+    Generate -->|Provider failure| Failure["Return stale fact or friendly error"]
+    Generate -->|Success| Save{"Token and lease still valid?"}
+    Save -->|Yes| Fresh["Save fact and release lease atomically"]
+    Fresh --> Result["Return fresh fact"]
+    Save -->|No| Winner["Read winner's fact or return 202"]
+```
+
+Every lease-owner exit attempts token-qualified cleanup in `finally`. Followers never start generation without a lease; an expired owner cannot save over a replacement. The steps below define the exact timing and transaction boundaries.
 
 1. Read the latest fact for this user/movie. It is fresh only when its timestamp is strictly greater than database `now() - interval '60 seconds'`. At 60 seconds it is expired. No timer or background job regenerates it automatically.
 2. On a miss, claim a 30-second lease using one parameterized `INSERT ... ON CONFLICT ... DO UPDATE ... WHERE leaseExpiresAt <= now() RETURNING` statement. Zero returned rows means another request owns generation. Prisma's native upsert cannot express that conditional takeover; `$queryRaw` is intentional and all user values are bound parameters.
