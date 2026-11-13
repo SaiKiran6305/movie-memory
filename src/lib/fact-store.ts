@@ -11,7 +11,7 @@ export class FactStore {
   constructor(private db: PrismaClient) {}
   async latest(userId: string, key: string): Promise<StoredFact | null> {
     const rows = await this.db.$queryRaw<StoredFact[]>`
-      SELECT id, text, "createdAt", clock_timestamp() AS "serverTime", ("createdAt" > now() - interval '60 seconds') AS fresh
+      SELECT id, text, "createdAt", clock_timestamp()::timestamptz(3) AS "serverTime", ("createdAt" > now() - interval '60 seconds') AS fresh
       FROM "MovieFact" WHERE "userId" = ${userId} AND "movieKey" = ${key}
       ORDER BY "createdAt" DESC, id DESC LIMIT 1`;
     return rows[0] ?? null;
@@ -62,7 +62,7 @@ export class FactStore {
         const saved = await tx.$queryRaw<StoredFact[]>`
         INSERT INTO "MovieFact" (id, "userId", "movieKey", "movieTitle", text, "createdAt")
         VALUES (${randomUUID()}, ${userId}, ${key}, ${title}, ${text}, clock_timestamp())
-        RETURNING id, text, "createdAt", clock_timestamp() AS "serverTime", true AS fresh`;
+        RETURNING id, text, "createdAt", clock_timestamp()::timestamptz(3) AS "serverTime", true AS fresh`;
         await tx.factGeneration.deleteMany({
           where: { userId, movieKey: key, token },
         });
