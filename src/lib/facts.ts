@@ -5,7 +5,7 @@ import type { FactResponse } from "./fact-contract";
 import { FactStore, type StoredFact } from "./fact-store";
 import { movieKey } from "./movie";
 import { AppError } from "./http";
-export type FactGenerator = (movie: string) => Promise<string>;
+export type FactGenerator = (movie: string, recentFacts: string[]) => Promise<string>;
 function present(
   fact: StoredFact,
   status: "fresh" | "cached" | "stale-fallback",
@@ -47,9 +47,10 @@ export function createFactService(db: PrismaClient, generate: FactGenerator) {
     try {
       const rechecked = await store.latest(userId, key);
       if (rechecked?.fresh) return present(rechecked, "cached");
+      const recentFacts = await store.recent(userId, key);
       let text: string;
       try {
-        text = await generate(title);
+        text = await generate(title, recentFacts);
         if (!text.trim() || text.length > 2000)
           throw new AppError(
             "INVALID_FACT",

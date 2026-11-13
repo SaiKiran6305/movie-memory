@@ -15,6 +15,15 @@ export class FactStore {
       ORDER BY "createdAt" DESC, id DESC LIMIT 1`;
     return rows[0] ?? null;
   }
+  async recent(userId: string, key: string): Promise<string[]> {
+    const rows = await this.db.movieFact.findMany({
+      where: { userId, movieKey: key },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: 5,
+      select: { text: true },
+    });
+    return rows.map((row) => row.text);
+  }
   async claim(userId: string, key: string, token: string) {
     const rows = await this.db.$queryRaw<{ token: string }[]>`
       INSERT INTO "FactGeneration" ("userId", "movieKey", token, "leaseExpiresAt")

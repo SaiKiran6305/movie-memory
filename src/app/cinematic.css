@@ -308,3 +308,6 @@ input::placeholder { color: #a89a8b; }
 @media (prefers-reduced-motion: reduce) {
   .signout-button { transition: none; }
 }
+
+.fact-card .button-secondary:disabled { cursor: default; opacity: 1; background: #e2e6dc; border-color: #bdc8bb; color: #435a4c; }
+.fact-card[aria-busy="true"] .button-secondary:disabled { cursor: wait; }

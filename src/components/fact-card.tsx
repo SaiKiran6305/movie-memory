@@ -92,6 +92,7 @@ export function FactCard() {
     ? Math.max(0, Math.floor((now - Date.parse(fact.createdAt)) / 1000))
     : 0;
   const remaining = Math.max(0, 60 - age);
+  const coolingDown = !!fact && fact.status !== "stale-fallback" && !error && remaining > 0;
   return (
     <section
       className="fact-card panel"
@@ -157,9 +158,9 @@ export function FactCard() {
         <button
           className="button-secondary"
           onClick={() => void load()}
-          disabled={loading}
+          disabled={loading || coolingDown}
         >
-          {loading ? "Discovering…" : error ? "Try again ↻" : "Refresh fact ↻"}
+          {loading ? "Discovering…" : error ? "Try again ↻" : coolingDown ? `Next discovery in ${remaining}s` : "Refresh fact ↻"}
         </button>
       </div>
       <p className="disclaimer">

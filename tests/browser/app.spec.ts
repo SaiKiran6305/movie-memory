@@ -107,7 +107,7 @@ test("dashboard renders before the fact and recovers from errors", async ({
         json: {
           status: "cached",
           fact: "A saved test fact about the film.",
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(Date.now() - 61000).toISOString(),
         },
       });
     }
@@ -172,4 +172,30 @@ test("unauthenticated API calls return 401", async ({ request }) => {
       await request.put("/api/me/movie", { data: { movie: "Interstellar" } })
     ).status(),
   ).toBe(401);
+});
+
+
+test("refresh stays disabled until the cache window ends", async ({ page, context }) => {
+  await signIn(context, "Interstellar");
+  await page.clock.install();
+  let calls = 0;
+  const createdAt = new Date().toISOString();
+  await page.route("**/api/fact", (route) => {
+    calls++;
+    return route.fulfill({ json: { status: "cached", fact: "A saved fact.", createdAt } });
+  });
+  await page.goto("/dashboard");
+  const cooldown = page.getByRole("button", { name: /Next discovery in/ });
+  await expect(cooldown).toBeDisabled();
+  await page.clock.fastForward(61000);
+  await expect(page.getByRole("button", { name: /Refresh fact/ })).toBeEnabled();
+  expect(calls).toBe(1);
+  await page.getByRole("button", { name: /Refresh fact/ }).click();
+  await expect.poll(() => calls).toBe(2);
+});
+
+test("unauthenticated dashboard returns an HTTP redirect", async ({ request }) => {
+  const response = await request.get("/dashboard", { maxRedirects: 0 });
+  expect(response.status()).toBe(307);
+  expect(response.headers().location).toBe("/");
 });

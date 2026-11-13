@@ -163,3 +163,16 @@ describe("database fact generation", () => {
     expect(generate).not.toHaveBeenCalled();
   });
 });
+
+
+it("passes only the five most recent facts for the same owner and movie", async () => {
+  for (let index = 0; index < 7; index++) {
+    const fact = await db.movieFact.create({ data: { userId: a, movieKey: key, movieTitle: key, text: `History ${index}` } });
+    await db.$executeRaw`UPDATE "MovieFact" SET "createdAt" = now() - (${120 + index} * interval '1 second') WHERE id = ${fact.id}`;
+  }
+  await oldFact(b);
+  await oldFact(a, "inception");
+  const generate = vi.fn(async () => "A different fact.");
+  await createFactService(db, generate)(a);
+  expect(generate).toHaveBeenCalledWith("Interstellar", ["History 0", "History 1", "History 2", "History 3", "History 4"]);
+});
