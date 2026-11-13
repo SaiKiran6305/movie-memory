@@ -1,10 +1,16 @@
 # Movie Memory
 
+- **Product:** Google sign-in → one-time movie onboarding → a personal fact dashboard.
+- **Stack:** Next.js, TypeScript, React/Tailwind, Prisma, and PostgreSQL.
+- **Variant A:** A 60-second user/movie cache and a database lease coordinate generation.
+- **Recovery:** Provider failures return a saved fact when available, otherwise a retryable error.
+- **Delivery:** Vercel + Neon, with unit/API, real-Postgres integration, and browser checks.
+
 A small movie companion: sign in with Google, save your favorite film, and discover a fact about it. Built with TypeScript, Next.js App Router, React, Tailwind CSS, PostgreSQL, Prisma, Auth.js, and OpenAI.
 
 **Variant A — backend caching and correctness.** The implementation emphasizes user isolation, a precise 60-second cache, coordinated generation, and useful recovery when the provider fails. The full frontend includes onboarding, a responsive dashboard, independent fact loading, and clear recovery states.
 
-I chose Variant A to demonstrate concurrency control, user isolation, and failure recovery in depth. A focused backend extension fits the exercise’s roughly three-hour budget better than expanding the feature set; the visual refinements were subsequent polish.
+I chose Variant A to demonstrate concurrency control, user isolation, and failure recovery in depth. A focused backend extension fits the exercise’s roughly three-hour budget better than expanding the feature set.
 
 ## Live app
 
@@ -24,6 +30,8 @@ npm run dev
 ```
 
 Open http://localhost:3000 only when running the app locally with `npm run dev`. For the deployed app, use the production link above. Generate your own session secret with `openssl rand -base64 32`. Never commit `.env` or put secrets in `NEXT_PUBLIC_` variables. Prisma CLI loads `.env`; Next.js also supports `.env.local`, but its values are not automatically available to Prisma CLI.
+
+### Google OAuth setup
 
 Create a Google OAuth **Web application** client with `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI. Configure the Google Auth Platform consent screen. This app requests only basic identity scopes (openid, email, and profile), for which Google's Testing mode permits sign-in without a test-user allowlist. Google documents this basic-identity exception in [Manage App Audience](https://support.google.com/cloud/answer/15549945). It does not override Workspace administrator restrictions or account-level policies. Test with a separate, non-allowlisted account before submission; that live reviewer-account check has not yet been recorded. Add test users if additional scopes later require them. The production OAuth callback is `https://movie-memory-gilt.vercel.app/api/auth/callback/google`. Google login needs real credentials; there is no production authentication bypass.
 
@@ -126,7 +134,7 @@ Browser tests create signed test sessions using the test secret and intercept fa
 1. Create a Neon Postgres project and choose a region near the Vercel functions.
 2. Import this GitHub repository into Vercel using the Next.js preset and Node.js 22. Use `npm ci` and `npm run build`.
 3. Configure the environment variables above in Vercel. Mark secrets sensitive. Set `AUTH_URL` to the stable application HTTPS URL. Never use `NEXT_PUBLIC_` for secrets.
-4. Register `https://YOUR_APP_HOST/api/auth/callback/google` with the Google OAuth client. For this app's basic identity scopes, Google's Testing mode does not restrict sign-in to listed test users. Review the Google Auth Platform publishing status and scopes before requesting broader Google data.
+4. Configure the production callback and reviewer access as described in [Google OAuth setup](#google-oauth-setup).
 5. Run `npm run db:migrate` against the deployment's direct database URL in a controlled release step before deploying. Migrations are not silently run on every preview build.
 6. Deploy and verify sign-in, onboarding, cached and fresh facts, logout, and API isolation. Redeploy after changing Vercel environment variables.
 
