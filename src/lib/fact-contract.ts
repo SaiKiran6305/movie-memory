@@ -4,6 +4,7 @@ export const factResponseSchema = z.discriminatedUnion("status", [
     status: z.enum(["fresh", "cached", "stale-fallback"]),
     fact: z.string().min(1),
     createdAt: z.string().datetime(),
+    serverTime: z.string().datetime().optional(),
   }),
   z.object({
     status: z.literal("generating"),
