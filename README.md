@@ -4,6 +4,8 @@ A small movie companion: sign in with Google, save your favorite film, and disco
 
 **Variant A — backend caching and correctness.** The implementation emphasizes user isolation, a precise 60-second cache, coordinated generation, and useful recovery when the provider fails. The full frontend includes onboarding, a responsive dashboard, independent fact loading, and clear recovery states.
 
+I chose Variant A to demonstrate concurrency control, user isolation, and failure recovery in depth. A focused backend extension fits the exercise’s roughly three-hour budget better than expanding the feature set; the visual refinements were subsequent polish.
+
 ## Live app
 
 Production: [movie-memory-gilt.vercel.app](https://movie-memory-gilt.vercel.app/). The deployed app uses Vercel, Neon, and the production Google OAuth callback. The instructions below are for running a separate copy on your own computer.
@@ -23,7 +25,7 @@ npm run dev
 
 Open http://localhost:3000 only when running the app locally with `npm run dev`. For the deployed app, use the production link above. Generate your own session secret with `openssl rand -base64 32`. Never commit `.env` or put secrets in `NEXT_PUBLIC_` variables. Prisma CLI loads `.env`; Next.js also supports `.env.local`, but its values are not automatically available to Prisma CLI.
 
-Create a Google OAuth **Web application** client with `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI. Configure the Google Auth Platform consent screen. This app requests only basic identity scopes (openid, email, and profile), for which Google's Testing mode permits sign-in without a test-user allowlist. Add test users if additional scopes later require them. The production OAuth callback is `https://movie-memory-gilt.vercel.app/api/auth/callback/google`. Google login needs real credentials; there is no production authentication bypass.
+Create a Google OAuth **Web application** client with `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI. Configure the Google Auth Platform consent screen. This app requests only basic identity scopes (openid, email, and profile), for which Google's Testing mode permits sign-in without a test-user allowlist. Google documents this basic-identity exception in [Manage App Audience](https://support.google.com/cloud/answer/15549945). It does not override Workspace administrator restrictions or account-level policies. Test with a separate, non-allowlisted account before submission; that live reviewer-account check has not yet been recorded. Add test users if additional scopes later require them. The production OAuth callback is `https://movie-memory-gilt.vercel.app/api/auth/callback/google`. Google login needs real credentials; there is no production authentication bypass.
 
 ### Environment variables
 
@@ -49,7 +51,7 @@ The application is a modular monolith. Pages and API handlers run in Next.js; ex
 - **Authentication:** Auth.js Google OAuth with JWT sessions, seven-day maximum age, and Prisma account persistence. The token carries the internal user ID. Server pages and every API handler verify the session; current movie data comes from the database. Middleware is not an authorization boundary. Logout clears the browser session; global token revocation is not implemented.
 - **Movie service:** trims and validates 1–200 characters on the server. Rejects control characters and unexpected JSON properties. Onboarding atomically writes only when the user's favorite movie is null. Multiple onboarding tabs cannot overwrite each other. Changing movies after onboarding is outside Variant A's scope.
 - **Fact service:** receives only the verified user ID, loads their saved movie, checks the database cache, coordinates generation, and persists results. The browser cannot select an owner or override the movie through a request body.
-- **Provider boundary:** sends only a JSON-encoded movie title with instructions treating it as untrusted data. Uses an eight-second timeout, no SDK retries, a 200-token output limit, and `store: false`. Incomplete/empty provider output is rejected. Results render as plain text. Delimiting input reduces instruction confusion but is not a guarantee of factual accuracy; trivia is explicitly labeled AI-generated.
+- **Provider boundary:** sends a JSON-encoded movie title and up to five recent facts for the same user/movie, treating both as untrusted data. It requests a different fact and typographic quotation marks. Recent context reduces repetition but cannot guarantee semantic uniqueness or correct typography; we do not rewrite generated text or retry duplicates automatically. Uses an eight-second timeout, no SDK retries, a 200-token output limit, and `store: false`. Incomplete/empty provider output is rejected. Results render as plain text. Delimiting input reduces instruction confusion but is not a guarantee of factual accuracy; trivia is explicitly labeled AI-generated.
 
 ### Data model
 
@@ -65,7 +67,7 @@ Movie keys trim leading/trailing whitespace, collapse internal whitespace, and l
 
 1. Read the latest fact for this user/movie. It is fresh only when its timestamp is strictly greater than database `now() - interval '60 seconds'`. At 60 seconds it is expired. No timer or background job regenerates it automatically.
 2. On a miss, claim a 30-second lease using one parameterized `INSERT ... ON CONFLICT ... DO UPDATE ... WHERE leaseExpiresAt <= now() RETURNING` statement. Zero returned rows means another request owns generation. Prisma's native upsert cannot express that conditional takeover; `$queryRaw` is intentional and all user values are bound parameters.
-3. The winner rechecks the cache after claiming, then calls OpenAI without an open database transaction.
+3. The winner rechecks the cache after claiming, reads up to five recent same-owner/same-movie facts, then calls OpenAI without an open database transaction.
 4. Saving uses a short transaction: lock the guard row, verify its token and unexpired lease, insert the fact, and remove the guard. A stale owner cannot persist a late result or delete a replacement owner's guard. We use `clock_timestamp()` after acquiring the lock because Postgres `now()` is frozen at transaction start; both are database clocks, not app-server clocks. Fact insertion also uses database wall time.
 5. Token-qualified cleanup runs in `finally`, including failures. If cleanup fails or the process dies, expiry permits recovery.
 6. Followers poll every 250 ms for at most approximately three seconds, subject to bounded DB query latency. They return a fresh result when available, otherwise an old fact or `202 generating`. The browser retries `202` after one second, with a 15-second overall request deadline. It then offers manual retry. A `202` does not create a background job; it refers to another active request. A crashed lease owner may require retry after 30 seconds.
@@ -92,11 +94,13 @@ Successful fact response:
 
 `status` is `fresh`, `cached`, or `stale-fallback`. The client validates the response schema. Active generation returns HTTP 202, `Retry-After: 1`, and `{ "status": "generating", "retryAfterMs": 1000 }`. Errors use `{ "error": { "code": "...", "message": "..." } }`. Unauthenticated calls return 401; cross-origin mutations return 403; invalid movie input returns 400; missing onboarding returns 409; unavailable services return 503.
 
-The UI's seconds-since-generated display uses the browser clock for presentation only. Server cache correctness always uses database time.
+The UI's seconds-since-generated display uses the browser clock for presentation only. Refresh is disabled with a countdown while the displayed successful fact is under 60 seconds old; errors and stale fallbacks keep retry available. The countdown does not automatically generate a fact. Server cache correctness always uses database time.
+
+There is no root loading boundary: authentication redirects complete before a response streams, so an unauthenticated `/dashboard` request returns HTTP 307. The fact card still loads independently after the dashboard renders.
 
 ### Failures and security
 
-OpenAI failure returns the most recent same-owner/same-movie fact when available. Without one, the user gets a friendly error. Database failures are not silently converted into success. Logging records request IDs, duration, cache outcome, and coarse failure categories without keys, provider responses, or profile data. Secrets never enter client props. Same-origin checks protect our cookie-authenticated mutations; Auth.js handles its own OAuth protections. Google name/photo fields are optional.
+OpenAI failure returns the most recent same-owner/same-movie fact when available. Without one, the user gets a friendly error. Database failures are not silently converted into success. Logging records request IDs, duration, cache outcome, and coarse failure categories without keys, provider responses, or profile data. Secrets never enter client props. Mutation origins must match `AUTH_URL`; use the documented production URL. Alternate Vercel aliases are intentionally rejected with 403, rather than trusting arbitrary forwarded hosts. Same-origin checks protect our cookie-authenticated mutations; Auth.js handles its own OAuth protections. Google name/photo fields are optional.
 
 ## Verification
 
@@ -132,7 +136,9 @@ Preview deployments require their own database and matching OAuth origin/callbac
 
 The modular monolith keeps the exercise reviewable. Database caching adds a read on every request but works across restarts and instances. Polling adds short-lived database traffic; it is acceptable at this scope but should not become high-volume background orchestration. JWT sessions simplify setup but do not provide immediate global revocation. User/movie cache isolation favors simple ownership reasoning over cross-user token savings.
 
-With two more hours, I would add support for multiple favorite movies: a small movie list, a way to select the active movie, and tests that keep fact history and the 60-second cache isolated per user and movie. I would also add per-user cost controls and more accessibility checks. Longer-term improvements include bounded fact retention, canonical movie identification, source-backed trivia, stronger observability, and a background worker if measured traffic and reliability needs justify it. Redis is only worth adding if measured database/cache load justifies another service.
+With two more hours, I would prioritize per-user rate limits and cost budgets, then prototype an SQS-backed generation worker on Lambda with idempotent job handling and result polling, aligned with Scowtt's stack. A reliable queue migration needs more validation than a two-hour prototype. Multi-movie support comes afterward, with per-user/per-movie cache and history isolation. Longer-term improvements include bounded fact retention, canonical movie identification, source-backed trivia, and stronger observability. Redis is only worth adding if measured database/cache load justifies another service.
+
+Under healthy operation, the fixed movie plus 60-second successful-fact cache limits normal generation to roughly one call per user per minute. This is not a hard spend cap or a rate limiter: failed generations, persistence failures, and expired leases can cause additional calls, and multiple accounts multiply usage.
 
 ## AI usage
 

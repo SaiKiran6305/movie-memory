@@ -6,13 +6,13 @@ Run the script's isolated tests with `node --test scripts/smoke.test.mjs`. These
 
 ## Signed-in walkthrough
 
-Use a Google account allowed by the consent screen. Record observations against the deployed commit; leave unchecked steps as unverified.
+Use a separate, non-allowlisted Google account to verify reviewer access; basic identity scopes have a Testing allowlist exception, but organization/account restrictions may still apply. Record observations against the deployed commit; leave unchecked steps as unverified.
 
 - [ ] Sign in from the landing page. A first-time user reaches onboarding.
 - [ ] Submit whitespace-only input and verify validation. Save a valid movie and verify the trimmed title appears on the dashboard.
 - [ ] Verify the profile and movie appear before the fact finishes loading. Verify missing profile photo/name have usable fallbacks.
 - [ ] Verify a real OpenAI fact appears, labeled AI-generated. This may incur API charges.
-- [ ] Refresh within 60 seconds: the response is cached with the same creation timestamp. After expiry, refresh and verify a new stored fact. New text may coincidentally repeat; use timestamps/status rather than text differences.
+- [ ] Within 60 seconds, verify Refresh is disabled and displays a countdown. Reload the page or open another tab to verify the server returns the cached timestamp. After expiry, refresh and verify a new stored fact. Recent history reduces repetition but does not guarantee uniqueness; use timestamps/status rather than text differences.
 - [ ] Open two tabs and refresh after expiry. Verify one successful generation for the burst in database records and no cross-user data.
 - [ ] Sign out, then navigate back to protected pages and call protected APIs: redirects and 401 responses must prevent access.
 - [ ] Sign in again and verify onboarding is skipped. Use a second account to verify separate profile, movie, and fact data.
