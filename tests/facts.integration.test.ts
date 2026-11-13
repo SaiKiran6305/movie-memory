@@ -216,3 +216,11 @@ it("returns database response time alongside the fact timestamp", async () => {
   expect("serverTime" in result).toBe(true);
   if ("serverTime" in result) expect(Date.parse(result.serverTime!)).toBeGreaterThanOrEqual(Date.parse(result.createdAt));
 });
+
+it("reserves the final global attempt only once across users", async () => {
+  await reserveGeneration(db, a);
+  await db.$executeRaw`UPDATE "GenerationBudget" SET attempts = 499 WHERE scope = 'global'`;
+  await db.$executeRaw`UPDATE "GenerationBudget" SET "lastAttempt" = clock_timestamp() - interval '11 seconds' WHERE scope = ${`user:${a}`}`;
+  const results = await Promise.all([reserveGeneration(db, a), reserveGeneration(db, b)]);
+  expect(results.filter((value) => value === 0)).toHaveLength(1);
+});
