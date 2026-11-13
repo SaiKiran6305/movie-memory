@@ -11,6 +11,7 @@ import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { createFactService } from "../src/lib/facts";
 import { FactStore } from "../src/lib/fact-store";
+import { reserveGeneration } from "../src/lib/generation-budget";
 if (!process.env.TEST_DATABASE_URL)
   throw new Error(
     "TEST_DATABASE_URL must point to a disposable Postgres database",
@@ -41,6 +42,7 @@ beforeAll(async () => {
   });
 });
 beforeEach(async () => {
+  await db.$executeRaw`DELETE FROM "GenerationBudget" WHERE scope IN ('global', ${`user:${a}`}, ${`user:${b}`})`;
   await db.factGeneration.deleteMany({ where: { userId: { in: [a, b] } } });
   await db.movieFact.deleteMany({ where: { userId: { in: [a, b] } } });
 });
@@ -175,4 +177,42 @@ it("passes only the five most recent facts for the same owner and movie", async 
   const generate = vi.fn(async () => "A different fact.");
   await createFactService(db, generate)(a);
   expect(generate).toHaveBeenCalledWith("Interstellar", ["History 0", "History 1", "History 2", "History 3", "History 4"]);
+});
+
+it("counts provider failures and throttles immediate retries", async () => {
+  const generate = vi.fn(async () => { throw new Error("provider down"); });
+  const service = createFactService(db, generate);
+  await expect(service(a)).rejects.toMatchObject({ code: "GENERATION_FAILED" });
+  await expect(service(a)).rejects.toMatchObject({ code: "GENERATION_LIMIT", status: 429 });
+  expect(generate).toHaveBeenCalledOnce();
+});
+it("reserves only one attempt for a concurrent same-user burst", async () => {
+  const results = await Promise.all(Array.from({ length: 12 }, () => reserveGeneration(db, a)));
+  expect(results.filter((value) => value === 0)).toHaveLength(1);
+});
+it("enforces the user daily cap without blocking another user", async () => {
+  await reserveGeneration(db, a);
+  await db.$executeRaw`UPDATE "GenerationBudget" SET attempts = 20 WHERE scope = ${`user:${a}`}`;
+  expect(await reserveGeneration(db, a)).toBeGreaterThan(0);
+  expect(await reserveGeneration(db, b)).toBe(0);
+});
+it("enforces the shared daily budget and resets an old UTC day", async () => {
+  await reserveGeneration(db, a);
+  await db.$executeRaw`UPDATE "GenerationBudget" SET attempts = 500 WHERE scope = 'global'`;
+  expect(await reserveGeneration(db, b)).toBeGreaterThan(0);
+  await db.$executeRaw`UPDATE "GenerationBudget" SET day = day - 1, "lastAttempt" = clock_timestamp() - interval '1 day'`;
+  expect(await reserveGeneration(db, b)).toBe(0);
+});
+it("keeps saved facts available when the generation budget is exhausted", async () => {
+  await oldFact();
+  await reserveGeneration(db, a);
+  await db.$executeRaw`UPDATE "GenerationBudget" SET attempts = 20 WHERE scope = ${`user:${a}`}`;
+  const generate = vi.fn(async () => "Must not run");
+  expect(await createFactService(db, generate)(a)).toMatchObject({ status: "stale-fallback" });
+  expect(generate).not.toHaveBeenCalled();
+});
+it("returns database response time alongside the fact timestamp", async () => {
+  const result = await createFactService(db, async () => "Fact")(a);
+  expect("serverTime" in result).toBe(true);
+  if ("serverTime" in result) expect(Date.parse(result.serverTime!)).toBeGreaterThanOrEqual(Date.parse(result.createdAt));
 });
