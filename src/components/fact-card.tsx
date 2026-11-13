@@ -163,7 +163,7 @@ export function FactCard() {
         </button>
       </div>
       <p className="disclaimer">
-        AI-generated movie trivia can occasionally be inaccurate.
+        Generated with AI · Details may need verification.
       </p>
     </section>
   );
