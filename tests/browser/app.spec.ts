@@ -175,14 +175,14 @@ test("unauthenticated API calls return 401", async ({ request }) => {
 });
 
 
-test("refresh stays disabled until the cache window ends", async ({ page, context }) => {
+test("refresh uses server timing despite a wrong device clock", async ({ page, context }) => {
   await signIn(context, "Interstellar");
-  await page.clock.install();
+  await page.clock.install({ time: new Date("2035-01-01T00:00:00Z") });
   let calls = 0;
   const createdAt = new Date().toISOString();
   await page.route("**/api/fact", (route) => {
     calls++;
-    return route.fulfill({ json: { status: "cached", fact: "A saved fact.", createdAt } });
+    return route.fulfill({ json: { status: "cached", fact: "A saved fact.", createdAt, serverTime: createdAt } });
   });
   await page.goto("/dashboard");
   const cooldown = page.getByRole("button", { name: /Next discovery in/ });

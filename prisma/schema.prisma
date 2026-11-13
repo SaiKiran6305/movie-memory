@@ -60,3 +60,11 @@ model FactGeneration {
 
   @@id([userId, movieKey])
 }
+
+// Attempt budgets use UTC calendar days. No provider call runs inside their transaction.
+model GenerationBudget {
+  scope String @id
+  day DateTime @db.Date
+  attempts Int @default(0)
+  lastAttempt DateTime? @db.Timestamptz(3)
+}

@@ -8,7 +8,8 @@ export function FactCard() {
   const [fact, setFact] = useState<Ready | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [now, setNow] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const receivedAt = useRef(0);
   const controller = useRef<AbortController | null>(null);
   const load = useCallback(async () => {
     controller.current?.abort();
@@ -42,7 +43,8 @@ export function FactCard() {
         const parsed = factResponseSchema.parse(data);
         if (parsed.status !== "generating") {
           setFact(parsed);
-          setNow(Date.now());
+          receivedAt.current = performance.now();
+          setElapsed(0);
           return;
         }
         await new Promise<void>((resolve, reject) => {
@@ -85,11 +87,11 @@ export function FactCard() {
     };
   }, [load]);
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    const id = setInterval(() => setElapsed(Math.max(0, performance.now() - receivedAt.current)), 1000);
     return () => clearInterval(id);
   }, []);
   const age = fact
-    ? Math.max(0, Math.floor((now - Date.parse(fact.createdAt)) / 1000))
+    ? Math.max(0, Math.floor(((fact.serverTime ? Date.parse(fact.serverTime) - Date.parse(fact.createdAt) : 60000) + elapsed) / 1000))
     : 0;
   const remaining = Math.max(0, 60 - age);
   const coolingDown = !!fact && fact.status !== "stale-fallback" && !error && remaining > 0;

@@ -5,12 +5,13 @@ import type { FactResponse } from "./fact-contract";
 import { FactStore, type StoredFact } from "./fact-store";
 import { movieKey } from "./movie";
 import { AppError } from "./http";
+import { reserveGeneration } from "./generation-budget";
 export type FactGenerator = (movie: string, recentFacts: string[]) => Promise<string>;
 function present(
   fact: StoredFact,
   status: "fresh" | "cached" | "stale-fallback",
 ): FactResponse {
-  return { status, fact: fact.text, createdAt: fact.createdAt.toISOString() };
+  return { status, fact: fact.text, createdAt: fact.createdAt.toISOString(), serverTime: fact.serverTime.toISOString() };
 }
 export function createFactService(db: PrismaClient, generate: FactGenerator) {
   const store = new FactStore(db);
@@ -47,6 +48,12 @@ export function createFactService(db: PrismaClient, generate: FactGenerator) {
     try {
       const rechecked = await store.latest(userId, key);
       if (rechecked?.fresh) return present(rechecked, "cached");
+      const retryAfterSeconds = await reserveGeneration(db, userId);
+      if (retryAfterSeconds > 0) {
+        const fallback = await store.latest(userId, key);
+        if (fallback) return present(fallback, "stale-fallback");
+        throw new AppError("GENERATION_LIMIT", `Generation limit reached. Try again in ${retryAfterSeconds} seconds.`, 429);
+      }
       const recentFacts = await store.recent(userId, key);
       let text: string;
       try {
